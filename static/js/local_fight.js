@@ -19,18 +19,24 @@
   const sparks = [];
 
   let frame = 0;
-  let roundState = "fight";
+  let roundState = "ready";
   let roundMessage = "ROUND 1";
   let roundTimer = 99;
   let roundTick = 0;
+  let readyTimer = 54;
+  let hitStop = 0;
+  let screenShake = 0;
+  let screenFlash = 0;
 
   const attacks = {
-    quick: { label: "rapido", startup: 4, active: 7, recovery: 10, damage: 5, reach: 92, height: 82, y: -108, stun: 14 },
-    heavy: { label: "pesado", startup: 8, active: 9, recovery: 18, damage: 11, reach: 128, height: 90, y: -112, stun: 22 },
-    lowQuick: { label: "bajo rapido", startup: 5, active: 7, recovery: 12, damage: 4, reach: 96, height: 42, y: -56, stun: 12 },
-    sweep: { label: "barrido", startup: 9, active: 10, recovery: 22, damage: 9, reach: 132, height: 42, y: -48, stun: 28, knockdown: true },
-    antiAir: { label: "anti-air", startup: 5, active: 9, recovery: 16, damage: 7, reach: 72, height: 116, y: -158, stun: 18 },
-    risingHeavy: { label: "ascendente", startup: 9, active: 11, recovery: 24, damage: 12, reach: 88, height: 128, y: -170, stun: 24 },
+    quick: { label: "rapido", startup: 4, active: 7, recovery: 10, damage: 5, reach: 92, height: 82, y: -108, stun: 14, hitStop: 5, shake: 4, slide: 2 },
+    heavy: { label: "pesado", startup: 8, active: 9, recovery: 18, damage: 11, reach: 128, height: 90, y: -112, stun: 22, hitStop: 8, shake: 8, slide: 5 },
+    lowQuick: { label: "bajo rapido", startup: 5, active: 7, recovery: 12, damage: 4, reach: 96, height: 42, y: -56, stun: 12, hitStop: 5, shake: 3, slide: 1 },
+    sweep: { label: "barrido", startup: 9, active: 10, recovery: 22, damage: 9, reach: 132, height: 42, y: -48, stun: 28, knockdown: true, hitStop: 8, shake: 8, slide: 3 },
+    antiAir: { label: "anti-air", startup: 5, active: 9, recovery: 16, damage: 7, reach: 72, height: 116, y: -158, stun: 18, hitStop: 6, shake: 5, slide: 2 },
+    risingHeavy: { label: "ascendente", startup: 9, active: 11, recovery: 24, damage: 12, reach: 88, height: 128, y: -170, stun: 24, hitStop: 9, shake: 9, slide: 4 },
+    airQuick: { label: "aereo rapido", startup: 4, active: 8, recovery: 12, damage: 5, reach: 88, height: 74, y: -118, stun: 14, hitStop: 5, shake: 4, slide: 2 },
+    airHeavy: { label: "aereo pesado", startup: 7, active: 10, recovery: 18, damage: 10, reach: 106, height: 94, y: -132, stun: 21, hitStop: 8, shake: 7, slide: 4 },
   };
 
   const player = createFighter({
@@ -105,6 +111,8 @@
       blockTimer: 0,
       ai: Boolean(config.ai),
       aiCooldown: 40,
+      bufferedAttack: null,
+      bufferedTimer: 0,
     };
   }
 
@@ -134,11 +142,17 @@
       fighter.invulnTimer = 20;
       fighter.blockTimer = 0;
       fighter.grounded = true;
+      fighter.bufferedAttack = null;
+      fighter.bufferedTimer = 0;
     }
-    roundState = "fight";
+    roundState = "ready";
     roundMessage = message || "ROUND 1";
     roundTimer = 99;
     roundTick = 0;
+    readyTimer = 54;
+    hitStop = 0;
+    screenShake = 0;
+    screenFlash = 0;
     effects.length = 0;
     sparks.length = 0;
     faceEachOther();
@@ -151,7 +165,30 @@
       resetRound("RESET");
     }
 
+    if (hitStop > 0) {
+      hitStop -= 1;
+      screenShake = Math.max(0, screenShake - 1);
+      screenFlash = Math.max(0, screenFlash - 1);
+      updateEffects();
+      pressed.clear();
+      return;
+    }
+
+    if (roundState === "ready") {
+      readyTimer -= 1;
+      roundMessage = readyTimer > 22 ? "ROUND 1" : "FIGHT";
+      if (readyTimer <= 0) {
+        roundState = "fight";
+        roundMessage = "";
+      }
+      updateEffects();
+      pressed.clear();
+      return;
+    }
+
     if (roundState !== "fight") {
+      screenShake = Math.max(0, screenShake - 1);
+      screenFlash = Math.max(0, screenFlash - 1);
       updateEffects();
       if (readout) {
         readout.textContent = `${roundMessage} - pulsa R para reiniciar`;
@@ -178,6 +215,8 @@
     updateAttack(player, cpu);
     updateAttack(cpu, player);
     updateEffects();
+    screenShake = Math.max(0, screenShake - 1);
+    screenFlash = Math.max(0, screenFlash - 1);
 
     if (player.health <= 0) {
       endRound(cpu, "K.O.");
@@ -197,19 +236,29 @@
   function updatePlayer() {
     tickStatus(player);
 
-    if (player.stunTimer > 0 || player.attack) {
-      return;
-    }
-
     const left = keys.has("KeyA");
     const right = keys.has("KeyD");
     const crouch = keys.has("KeyS");
     const up = keys.has("KeyW");
+    const guarding = crouch || (player.facing === 1 ? left : right);
+    player.blockTimer = guarding ? 8 : Math.max(0, player.blockTimer - 1);
+
+    if (consume("KeyJ")) {
+      bufferAttack(player, up ? "antiAir" : crouch ? "lowQuick" : player.grounded ? "quick" : "airQuick");
+    }
+
+    if (consume("KeyK")) {
+      bufferAttack(player, up ? "risingHeavy" : crouch ? "sweep" : player.grounded ? "heavy" : "airHeavy");
+    }
+
+    if (player.stunTimer > 0 || player.attack) {
+      return;
+    }
+
     const speed = crouch ? 2 : 4.9;
 
     player.vx = 0;
-    player.blockTimer = crouch ? 8 : Math.max(0, player.blockTimer - 1);
-    player.state = crouch ? "crouch" : "idle";
+    player.state = crouch ? "crouch" : guarding ? "guard" : "idle";
 
     if (left) {
       player.vx -= speed;
@@ -236,13 +285,7 @@
       spawnAfterimage(player);
     }
 
-    if (consume("KeyJ")) {
-      startAttack(player, up ? "antiAir" : crouch ? "lowQuick" : "quick");
-    }
-
-    if (consume("KeyK")) {
-      startAttack(player, up ? "risingHeavy" : crouch ? "sweep" : "heavy");
-    }
+    tryBufferedAttack(player);
   }
 
   function updateCpu() {
@@ -256,22 +299,30 @@
     const absDistance = Math.abs(distance);
     cpu.vx = 0;
     cpu.state = "guard";
-    cpu.blockTimer = absDistance < 170 && player.attack ? 8 : Math.max(0, cpu.blockTimer - 1);
+    const playerThreatening = player.attack && absDistance < 210;
+    cpu.blockTimer = playerThreatening ? 10 : Math.max(0, cpu.blockTimer - 1);
 
     if (cpu.aiCooldown > 0) {
       cpu.aiCooldown -= 1;
     }
 
-    if (absDistance > 250) {
+    if (playerThreatening) {
+      cpu.vx = -Math.sign(distance) * 2.1;
+      cpu.state = "guard";
+    } else if (absDistance > 275) {
       cpu.vx = Math.sign(distance) * 2.8;
       cpu.state = "stalk";
-    } else if (absDistance < 88) {
+    } else if (absDistance < 98) {
       cpu.vx = -Math.sign(distance) * 2.4;
       cpu.state = "backstep";
+    } else if (absDistance > 165) {
+      cpu.vx = Math.sign(distance) * 1.1;
+      cpu.state = "probe";
     }
 
-    if (cpu.aiCooldown <= 0 && absDistance < 210) {
-      startAttack(cpu, absDistance < 130 ? "quick" : "heavy");
+    if (cpu.aiCooldown <= 0 && !playerThreatening && absDistance < 220) {
+      const choice = absDistance < 120 ? "quick" : Math.random() > 0.42 ? "heavy" : "sweep";
+      startAttack(cpu, choice);
       cpu.aiCooldown = 54 + Math.floor(Math.random() * 34);
     }
   }
@@ -280,11 +331,30 @@
     fighter.dashCooldown = Math.max(0, fighter.dashCooldown - 1);
     fighter.invulnTimer = Math.max(0, fighter.invulnTimer - 1);
     fighter.stunTimer = Math.max(0, fighter.stunTimer - 1);
+    fighter.bufferedTimer = Math.max(0, fighter.bufferedTimer - 1);
+    if (fighter.bufferedTimer <= 0) {
+      fighter.bufferedAttack = null;
+    }
 
     if (fighter.dashTimer > 0) {
       fighter.dashTimer -= 1;
       fighter.vx = fighter.facing * 13;
     }
+  }
+
+  function bufferAttack(fighter, attackName) {
+    fighter.bufferedAttack = attackName;
+    fighter.bufferedTimer = 9;
+  }
+
+  function tryBufferedAttack(fighter) {
+    if (!fighter.bufferedAttack || fighter.stunTimer > 0 || fighter.attack) {
+      return false;
+    }
+    startAttack(fighter, fighter.bufferedAttack);
+    fighter.bufferedAttack = null;
+    fighter.bufferedTimer = 0;
+    return true;
   }
 
   function startAttack(fighter, attackName) {
@@ -328,9 +398,13 @@
     defender.health = Math.max(0, defender.health - damage);
     defender.stunTimer = blocking ? 7 : attack.stun;
     defender.invulnTimer = 8;
-    defender.vx = attacker.facing * (blocking ? 3 : 8);
+    defender.vx = attacker.facing * (blocking ? 3 : 7 + attack.slide);
     defender.vy = attack.knockdown && !blocking ? -7 : defender.vy;
     defender.state = blocking ? "block" : attack.knockdown ? "knockdown" : "hit";
+    attacker.vx += attacker.facing * (blocking ? 0.8 : 1.8);
+    hitStop = blocking ? Math.max(3, attack.hitStop - 2) : attack.hitStop;
+    screenShake = blocking ? Math.max(2, Math.floor(attack.shake / 2)) : attack.shake;
+    screenFlash = blocking ? 4 : 7;
 
     effects.push({
       x: hitbox.x + hitbox.w * 0.65,
@@ -417,14 +491,8 @@
     roundState = "ended";
     winner.wins += 1;
     roundMessage = `${reason} ${winner.name.toUpperCase()}`;
-    effects.push({
-      x: WIDTH / 2,
-      y: HEIGHT / 2 - 40,
-      text: roundMessage,
-      color: "#fff0d0",
-      life: 9999,
-      big: true,
-    });
+    screenShake = 14;
+    screenFlash = 12;
   }
 
   function updateEffects() {
@@ -452,12 +520,20 @@
   }
 
   function render() {
+    ctx.save();
+    if (screenShake > 0) {
+      const shake = screenShake * 0.55;
+      ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+    }
     drawStage();
     drawHud();
     drawFighter(cpu, false);
     drawFighter(player, true);
     drawDebugBoxes();
     drawEffects();
+    drawRoundBanner();
+    drawFlash();
+    ctx.restore();
   }
 
   function drawStage() {
@@ -709,6 +785,49 @@
     }
   }
 
+  function drawRoundBanner() {
+    if (roundState === "fight" && !roundMessage) {
+      return;
+    }
+
+    const ended = roundState === "ended";
+    const text = ended ? roundMessage : roundMessage || "FIGHT";
+    const subtext = ended ? "PULSA R PARA REVANCHA" : "";
+
+    ctx.save();
+    ctx.globalAlpha = ended ? 0.96 : 0.84;
+    ctx.fillStyle = "rgba(5,3,4,0.82)";
+    ctx.fillRect(0, HEIGHT / 2 - 74, WIDTH, ended ? 150 : 110);
+    ctx.strokeStyle = ended ? "#ffb83d" : "#f01621";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, HEIGHT / 2 - 74);
+    ctx.lineTo(WIDTH, HEIGHT / 2 - 74);
+    ctx.moveTo(0, HEIGHT / 2 + (ended ? 76 : 36));
+    ctx.lineTo(WIDTH, HEIGHT / 2 + (ended ? 76 : 36));
+    ctx.stroke();
+
+    ctx.fillStyle = ended ? "#fff0d0" : "#ffb83d";
+    ctx.font = ended ? "bold 58px Trebuchet MS" : "bold 64px Trebuchet MS";
+    ctx.textAlign = "center";
+    ctx.fillText(text, WIDTH / 2, HEIGHT / 2 - (ended ? 4 : 2));
+
+    if (subtext) {
+      ctx.fillStyle = "#43d5d0";
+      ctx.font = "bold 22px Trebuchet MS";
+      ctx.fillText(subtext, WIDTH / 2, HEIGHT / 2 + 46);
+    }
+    ctx.restore();
+  }
+
+  function drawFlash() {
+    if (screenFlash <= 0) {
+      return;
+    }
+    ctx.fillStyle = `rgba(255,240,208,${screenFlash / 70})`;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  }
+
   function spawnAfterimage(fighter) {
     effects.push({
       x: fighter.x - fighter.facing * 70,
@@ -747,6 +866,7 @@
         roundState,
         roundMessage,
         roundTimer,
+        hitStop,
       };
     },
   };

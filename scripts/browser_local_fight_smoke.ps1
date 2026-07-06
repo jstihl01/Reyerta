@@ -157,10 +157,22 @@ try {
         Start-Sleep -Seconds 1
     }
 
-    $id++
-    $initialState = Send-Cdp $socket $id "Runtime.evaluate" @{
-        expression = "JSON.stringify(window.__reyertaLocalFight?.getState?.())"
-        returnByValue = $true
+    $initialState = $null
+    foreach ($attempt in 1..30) {
+        Start-Sleep -Milliseconds 200
+        $id++
+        $candidate = Send-Cdp $socket $id "Runtime.evaluate" @{
+            expression = "JSON.stringify(window.__reyertaLocalFight?.getState?.() || null)"
+            returnByValue = $true
+        }
+        if ($candidate.result.result.value -and $candidate.result.result.value -ne "null") {
+            $initialState = $candidate
+            break
+        }
+    }
+
+    if (-not $initialState) {
+        throw "Local fight diagnostics were not available."
     }
 
     Dispatch-Key $socket ([ref]$id) "KeyD" "d"
@@ -213,6 +225,12 @@ try {
     if (($result.state.player.health -ge $initial.player.health) -and ($result.state.cpu.health -ge $initial.cpu.health)) {
         throw "No combat damage was registered."
     }
+
+    $id++
+    Send-Cdp $socket $id "Runtime.evaluate" @{
+        expression = "document.querySelector('.messages')?.remove()"
+        returnByValue = $true
+    } | Out-Null
 
     $id++
     $screenshot = Send-Cdp $socket $id "Page.captureScreenshot" @{ format = "png"; captureBeyondViewport = $true }
