@@ -157,21 +157,61 @@ try {
         Start-Sleep -Seconds 1
     }
 
+    $id++
+    $initialState = Send-Cdp $socket $id "Runtime.evaluate" @{
+        expression = "JSON.stringify(window.__reyertaLocalFight?.getState?.())"
+        returnByValue = $true
+    }
+
     Dispatch-Key $socket ([ref]$id) "KeyD" "d"
-    Start-Sleep -Milliseconds 250
-    Dispatch-Key $socket ([ref]$id) "KeyJ" "j"
-    Start-Sleep -Milliseconds 250
-    Release-Key $socket ([ref]$id) "KeyJ" "j"
-    Dispatch-Key $socket ([ref]$id) "KeyL" "l"
-    Start-Sleep -Milliseconds 250
-    Release-Key $socket ([ref]$id) "KeyL" "l"
+    foreach ($step in 1..12) {
+        Start-Sleep -Milliseconds 140
+        $id++
+        $distanceInfo = Send-Cdp $socket $id "Runtime.evaluate" @{
+            expression = "Math.abs(window.__reyertaLocalFight.getState().cpu.x - window.__reyertaLocalFight.getState().player.x)"
+            returnByValue = $true
+        }
+        if ($distanceInfo.result.result.value -lt 170) {
+            break
+        }
+    }
     Release-Key $socket ([ref]$id) "KeyD" "d"
+
+    foreach ($attack in @("KeyJ", "KeyK", "KeyJ")) {
+        $key = $attack.Substring(3).ToLowerInvariant()
+        Dispatch-Key $socket ([ref]$id) $attack $key
+        Start-Sleep -Milliseconds 120
+        Release-Key $socket ([ref]$id) $attack $key
+        Start-Sleep -Milliseconds 420
+    }
+
+    Dispatch-Key $socket ([ref]$id) "KeyL" "l"
+    Start-Sleep -Milliseconds 180
+    Release-Key $socket ([ref]$id) "KeyL" "l"
     Start-Sleep -Milliseconds 350
 
     $id++
     $info = Send-Cdp $socket $id "Runtime.evaluate" @{
-        expression = "JSON.stringify({path:location.pathname, readout:document.querySelector('#input-readout')?.innerText, canvasBlank:(()=>{const c=document.querySelector('#fight-canvas');const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let sum=0;for(let i=0;i<d.length;i+=997){sum+=d[i]+d[i+1]+d[i+2]+d[i+3]}return sum===0})(), overflowX:document.documentElement.scrollWidth>document.documentElement.clientWidth})"
+        expression = "JSON.stringify({path:location.pathname, readout:document.querySelector('#input-readout')?.innerText, state:window.__reyertaLocalFight.getState(), canvasBlank:(()=>{const c=document.querySelector('#fight-canvas');const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let sum=0;for(let i=0;i<d.length;i+=997){sum+=d[i]+d[i+1]+d[i+2]+d[i+3]}return sum===0})(), overflowX:document.documentElement.scrollWidth>document.documentElement.clientWidth})"
         returnByValue = $true
+    }
+
+    $initial = $initialState.result.result.value | ConvertFrom-Json
+    $result = $info.result.result.value | ConvertFrom-Json
+    if ($result.path -ne "/local/") {
+        throw "Expected /local/ but got $($result.path)."
+    }
+    if ($result.canvasBlank) {
+        throw "Fight canvas is blank."
+    }
+    if ($result.overflowX) {
+        throw "Page has horizontal overflow."
+    }
+    if ($result.state.player.x -le $initial.player.x) {
+        throw "Player did not move forward."
+    }
+    if (($result.state.player.health -ge $initial.player.health) -and ($result.state.cpu.health -ge $initial.cpu.health)) {
+        throw "No combat damage was registered."
     }
 
     $id++
