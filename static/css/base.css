@@ -108,7 +108,6 @@ input {
   text-transform: uppercase;
 }
 
-.brand-logo,
 .screen-title {
   position: relative;
   margin: 0;
@@ -124,32 +123,20 @@ input {
 }
 
 .brand-logo {
-  font-size: clamp(92px, 12vw, 176px);
-  transform: skewX(-5deg);
-  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.82));
+  margin: -6px auto 0;
+  width: min(760px, 82vw);
+  filter:
+    drop-shadow(0 18px 24px rgba(0, 0, 0, 0.82))
+    drop-shadow(0 0 34px rgba(240, 22, 33, 0.58));
+  line-height: 0;
+  transform: rotate(-0.8deg);
 }
 
-.brand-logo::before,
-.brand-logo::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.brand-logo::before {
-  color: transparent;
-  -webkit-text-stroke: 2px var(--cream);
-  opacity: 0.34;
-  transform: translate(5px, -5px);
-}
-
-.brand-logo::after {
-  color: var(--cyan);
-  opacity: 0.16;
-  transform: translate(-5px, 4px);
-  mix-blend-mode: screen;
-  animation: logo-glitch 3.8s steps(2, end) infinite;
+.brand-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: logo-pulse 3.2s ease-in-out infinite alternate;
 }
 
 .screen-title {
@@ -411,16 +398,13 @@ input {
   }
 }
 
-@keyframes logo-glitch {
-  0%,
-  89%,
-  100% {
-    transform: translate(-5px, 4px);
+@keyframes logo-pulse {
+  from {
+    filter: saturate(0.96) brightness(0.98);
+    transform: translateY(0);
   }
-  90% {
-    transform: translate(3px, -2px);
-  }
-  94% {
-    transform: translate(-7px, 3px);
+  to {
+    filter: saturate(1.12) brightness(1.08);
+    transform: translateY(-3px);
   }
 }

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Reyerta{% endblock %}
 
@@ -6,7 +7,9 @@
 <main class="shell">
   <section class="title-screen">
     <p class="eyebrow">1v1 online fighting game</p>
-    <h1 class="brand-logo" data-text="REYERTA">REYERTA</h1>
+    <h1 class="brand-logo">
+      <img src="{% static 'img/logo-reyerta.png' %}" alt="REYERTA">
+    </h1>
     {% if user.is_authenticated %}
     <p class="session-label">Sesion iniciada: {{ user.username }}</p>
     <div class="menu-panel">
