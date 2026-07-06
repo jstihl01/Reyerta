@@ -6,24 +6,28 @@
 <main class="shell">
   <section class="title-screen">
     <p class="eyebrow">1v1 online fighting game</p>
-    <h1>REYERTA</h1>
+    <h1 class="brand-logo" data-text="REYERTA">REYERTA</h1>
     {% if user.is_authenticated %}
     <p class="session-label">Sesion iniciada: {{ user.username }}</p>
-    <nav class="menu" aria-label="Menu principal">
-      <a href="{% url 'core:local' %}">Local</a>
-      <a href="{% url 'core:buscar_partida' %}">Buscar partida</a>
-      <a href="{% url 'core:crear_sala' %}">Crear sala</a>
-      <a href="{% url 'core:unirse' %}">Unirse</a>
-    </nav>
-    <form class="inline-action" action="{% url 'usuarios:logout' %}" method="post">
-      {% csrf_token %}
-      <button type="submit">Cerrar sesion</button>
-    </form>
+    <div class="menu-panel">
+      <nav class="menu" aria-label="Menu principal">
+        <a href="{% url 'core:local' %}"><span>Local</span></a>
+        <a href="{% url 'core:buscar_partida' %}"><span>Buscar partida</span></a>
+        <a href="{% url 'core:crear_sala' %}"><span>Crear sala</span></a>
+        <a href="{% url 'core:unirse' %}"><span>Unirse</span></a>
+      </nav>
+      <form class="inline-action" action="{% url 'usuarios:logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Cerrar sesion</button>
+      </form>
+    </div>
     {% else %}
-    <nav class="menu" aria-label="Acceso">
-      <a href="{% url 'usuarios:login' %}">Entrar</a>
-      <a href="{% url 'usuarios:registro' %}">Crear cuenta</a>
-    </nav>
+    <div class="menu-panel menu-panel-small">
+      <nav class="menu" aria-label="Acceso">
+        <a href="{% url 'usuarios:login' %}"><span>Entrar</span></a>
+        <a href="{% url 'usuarios:registro' %}"><span>Crear cuenta</span></a>
+      </nav>
+    </div>
     {% endif %}
   </section>
 </main>

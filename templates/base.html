@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
 </head>
 <body>
+  <div class="stage-bg" aria-hidden="true"></div>
+  <div class="screen-fx" aria-hidden="true"></div>
   {% if messages %}
     <aside class="messages" aria-label="Mensajes">
       {% for message in messages %}

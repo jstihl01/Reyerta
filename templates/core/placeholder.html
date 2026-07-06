@@ -7,10 +7,12 @@
   <section class="panel-screen">
     <p class="eyebrow">{{ eyebrow }}</p>
     <h1 class="screen-title">{{ title }}</h1>
-    <p class="panel-copy">{{ body }}</p>
-    <nav class="menu menu-compact" aria-label="Navegacion">
-      <a href="{% url 'core:home' %}">Volver</a>
-    </nav>
+    <div class="content-panel">
+      <p class="panel-copy">{{ body }}</p>
+      <nav class="menu menu-compact" aria-label="Navegacion">
+        <a href="{% url 'core:home' %}"><span>Volver</span></a>
+      </nav>
+    </div>
   </section>
 </main>
 {% endblock %}

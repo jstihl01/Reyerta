@@ -7,18 +7,20 @@
   <section class="auth-screen">
     <p class="eyebrow">Cuenta de jugador</p>
     <h1 class="screen-title">Entrar</h1>
-    <form class="auth-form" method="post">
-      {% csrf_token %}
-      {{ form.non_field_errors }}
-      <label for="{{ form.username.id_for_label }}">Usuario</label>
-      {{ form.username }}
-      {{ form.username.errors }}
-      <label for="{{ form.password.id_for_label }}">Clave</label>
-      {{ form.password }}
-      {{ form.password.errors }}
-      <button type="submit">Entrar</button>
-    </form>
-    <p class="auth-link">No tienes cuenta? <a href="{% url 'usuarios:registro' %}">Crear cuenta</a></p>
+    <div class="content-panel auth-panel">
+      <form class="auth-form" method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <label for="{{ form.username.id_for_label }}">Usuario</label>
+        {{ form.username }}
+        {{ form.username.errors }}
+        <label for="{{ form.password.id_for_label }}">Clave</label>
+        {{ form.password }}
+        {{ form.password.errors }}
+        <button type="submit">Entrar</button>
+      </form>
+      <p class="auth-link">No tienes cuenta? <a href="{% url 'usuarios:registro' %}">Crear cuenta</a></p>
+    </div>
   </section>
 </main>
 {% endblock %}
