@@ -17,6 +17,11 @@ media/
 .env
 .env.*
 
+# Browser smoke-test artifacts
+screenshots/
+.chrome-smoke-profile*/
+.edge-smoke-profile/
+
 # Editors and OS
 .idea/
 .vscode/
