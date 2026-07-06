@@ -28,20 +28,21 @@ Reyerta es un videojuego de lucha 1v1 online para navegador, con backend en Pyth
 Instalacion:
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
 ## Desarrollo local
 
 ```powershell
-python manage.py migrate
-python manage.py runserver
+.\.venv\Scripts\python.exe manage.py migrate
+.\.venv\Scripts\python.exe manage.py runserver
 ```
 
 Para probar desde otro ordenador de la misma red:
 
 ```powershell
-python manage.py runserver 0.0.0.0:8000
+.\.venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000
 ```
 
 Despues abre `http://IP-DE-TU-PC:8000` desde el otro equipo. Mas adelante documentaremos `ALLOWED_HOSTS`, firewall y despliegue ASGI estable con Daphne o Uvicorn.
