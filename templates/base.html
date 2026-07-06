@@ -8,6 +8,13 @@
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
 </head>
 <body>
+  {% if messages %}
+    <aside class="messages" aria-label="Mensajes">
+      {% for message in messages %}
+        <p class="message message-{{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+    </aside>
+  {% endif %}
   {% block content %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} | Reyerta{% endblock %}
+
+{% block content %}
+<main class="shell shell-top">
+  <section class="panel-screen">
+    <p class="eyebrow">{{ eyebrow }}</p>
+    <h1 class="screen-title">{{ title }}</h1>
+    <p class="panel-copy">{{ body }}</p>
+    <nav class="menu menu-compact" aria-label="Navegacion">
+      <a href="{% url 'core:home' %}">Volver</a>
+    </nav>
+  </section>
+</main>
+{% endblock %}

@@ -20,6 +20,7 @@ media/
 # Browser smoke-test artifacts
 screenshots/
 .chrome-smoke-profile*/
+.chrome-auth-smoke-profile/
 .edge-smoke-profile/
 
 # Editors and OS

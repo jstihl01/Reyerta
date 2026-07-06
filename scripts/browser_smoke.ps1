@@ -55,8 +55,10 @@ $chromeArgs = @(
     "about:blank"
 )
 
+$quotedProfile = '"' + $profile + '"'
 $process = $null
 if (-not $NoLaunch) {
+    $chromeArgs[3] = "--user-data-dir=$quotedProfile"
     $process = Start-Process -FilePath $chrome -ArgumentList ($chromeArgs -join " ") -PassThru
 }
 

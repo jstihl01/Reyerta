@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Crear cuenta | Reyerta{% endblock %}
+
+{% block content %}
+<main class="shell">
+  <section class="auth-screen">
+    <p class="eyebrow">Nuevo luchador</p>
+    <h1 class="screen-title">Crear cuenta</h1>
+    <form class="auth-form" method="post">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {{ field.errors }}
+      {% endfor %}
+      <button type="submit">Crear cuenta</button>
+    </form>
+    <p class="auth-link">Ya tienes cuenta? <a href="{% url 'usuarios:login' %}">Entrar</a></p>
+  </section>
+</main>
+{% endblock %}
