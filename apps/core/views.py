@@ -8,15 +8,7 @@ def home(request):
 
 @login_required
 def local(request):
-    return render(
-        request,
-        "core/placeholder.html",
-        {
-            "title": "Modo local",
-            "eyebrow": "Entrenamiento contra bot",
-            "body": "Aqui prepararemos el primer combate local para probar controles, ataques y ritmo sin depender del online.",
-        },
-    )
+    return render(request, "core/local.html")
 
 
 @login_required
@@ -57,4 +49,3 @@ def unirse(request):
         },
     )
 
-# Create your views here.

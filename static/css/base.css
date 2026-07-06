@@ -408,3 +408,115 @@ input {
     transform: translateY(-3px);
   }
 }
+
+.fight-shell {
+  min-height: 100vh;
+  padding: 28px 36px;
+}
+
+.fight-screen {
+  display: grid;
+  gap: 16px;
+  margin: 0 auto;
+  max-width: 1360px;
+}
+
+.fight-topbar,
+.fight-status {
+  display: grid;
+  grid-template-columns: 180px 1fr 260px;
+  align-items: center;
+  border: 2px solid rgba(240, 22, 33, 0.7);
+  background:
+    linear-gradient(90deg, rgba(240, 22, 33, 0.15), transparent 44%, rgba(67, 213, 208, 0.08)),
+    rgba(5, 3, 4, 0.86);
+  box-shadow:
+    0 0 0 1px rgba(255, 240, 208, 0.08) inset,
+    0 14px 34px rgba(0, 0, 0, 0.48);
+  padding: 12px 16px;
+}
+
+.fight-status {
+  grid-template-columns: 1fr auto;
+  color: var(--muted);
+  min-height: 54px;
+}
+
+.fight-status p {
+  margin: 0;
+}
+
+.back-link {
+  border: 2px solid rgba(255, 240, 208, 0.36);
+  color: var(--cream);
+  display: inline-block;
+  padding: 10px 14px;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.back-link:hover,
+.back-link:focus-visible {
+  background: var(--red);
+  border-color: var(--cream);
+  color: var(--black);
+  outline: 0;
+}
+
+.fight-mode {
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.fight-mode span {
+  color: var(--gold);
+  display: block;
+  font-size: 13px;
+}
+
+.fight-mode strong {
+  color: var(--cream);
+  font-size: 20px;
+}
+
+.control-hint {
+  color: var(--cyan);
+  font-size: 13px;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.fight-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border: 3px solid rgba(255, 240, 208, 0.22);
+  background: #050304;
+  box-shadow:
+    0 0 0 2px rgba(240, 22, 33, 0.72),
+    0 0 42px rgba(240, 22, 33, 0.28),
+    0 24px 70px rgba(0, 0, 0, 0.72);
+  overflow: hidden;
+}
+
+.fight-frame canvas {
+  display: block;
+  height: 100%;
+  image-rendering: pixelated;
+  width: 100%;
+}
+
+.fight-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 10%),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.025) 0,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  pointer-events: none;
+}

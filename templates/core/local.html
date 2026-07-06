@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Modo local | Reyerta{% endblock %}
+
+{% block content %}
+<main class="fight-shell">
+  <section class="fight-screen" aria-label="Modo local">
+    <header class="fight-topbar">
+      <a class="back-link" href="{% url 'core:home' %}">Volver</a>
+      <div class="fight-mode">
+        <span>Modo local</span>
+        <strong>Entrenamiento contra bot</strong>
+      </div>
+      <div class="control-hint">
+        WASD / Espacio / J / K / L
+      </div>
+    </header>
+
+    <div class="fight-frame">
+      <canvas id="fight-canvas" width="1280" height="720" aria-label="Escenario de combate local"></canvas>
+      <div class="fight-overlay" aria-hidden="true"></div>
+    </div>
+
+    <footer class="fight-status">
+      <p id="input-readout">Listo</p>
+      <p>Jugador 1 vs CPU</p>
+    </footer>
+  </section>
+</main>
+<script src="{% static 'js/local_fight.js' %}"></script>
+{% endblock %}

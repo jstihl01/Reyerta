@@ -47,4 +47,6 @@ class CoreViewsTests(TestCase):
         response = self.client.get(reverse("core:local"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Modo local")
+        self.assertContains(response, "fight-canvas")
+        self.assertContains(response, "local_fight.js")
+        self.assertContains(response, "WASD")

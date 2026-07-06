@@ -21,6 +21,7 @@ media/
 screenshots/
 .chrome-smoke-profile*/
 .chrome-auth-smoke-profile/
+.chrome-local-smoke-profile/
 .edge-smoke-profile/
 
 # Editors and OS
