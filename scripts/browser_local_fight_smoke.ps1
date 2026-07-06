@@ -157,6 +157,45 @@ try {
         Start-Sleep -Seconds 1
     }
 
+    $selectorState = $null
+    foreach ($attempt in 1..30) {
+        Start-Sleep -Milliseconds 200
+        $id++
+        $candidate = Send-Cdp $socket $id "Runtime.evaluate" @{
+            expression = "JSON.stringify(window.__reyertaLocalFight?.getState?.() || null)"
+            returnByValue = $true
+        }
+        if ($candidate.result.result.value -and $candidate.result.result.value -ne "null") {
+            $selectorState = $candidate
+            break
+        }
+    }
+
+    if (-not $selectorState) {
+        throw "Local fight diagnostics were not available."
+    }
+
+    $selector = $selectorState.result.result.value | ConvertFrom-Json
+    if ($selector.gamePhase -ne "select") {
+        throw "Expected character select phase but got $($selector.gamePhase)."
+    }
+
+    $id++
+    Send-Cdp $socket $id "Runtime.evaluate" @{
+        expression = "document.querySelector('.messages')?.remove()"
+        returnByValue = $true
+    } | Out-Null
+
+    $id++
+    $selectorScreenshot = Send-Cdp $socket $id "Page.captureScreenshot" @{ format = "png"; captureBeyondViewport = $true }
+    [IO.File]::WriteAllBytes((Join-Path $screenshots "local-character-select-smoke.png"), [Convert]::FromBase64String($selectorScreenshot.result.data))
+
+    $id++
+    Send-Cdp $socket $id "Runtime.evaluate" @{
+        expression = "window.__reyertaLocalFight.selectCharacter('rizo')"
+        returnByValue = $true
+    } | Out-Null
+
     $initialState = $null
     foreach ($attempt in 1..30) {
         Start-Sleep -Milliseconds 200
@@ -166,14 +205,19 @@ try {
             returnByValue = $true
         }
         if ($candidate.result.result.value -and $candidate.result.result.value -ne "null") {
-            $initialState = $candidate
-            break
+            $state = $candidate.result.result.value | ConvertFrom-Json
+            if ($state.player -and $state.player.id -eq "rizo" -and $state.cpu.id -eq "nara") {
+                $initialState = $candidate
+                break
+            }
         }
     }
 
     if (-not $initialState) {
-        throw "Local fight diagnostics were not available."
+        throw "Local fight did not start with Rizo vs Nara."
     }
+
+    Start-Sleep -Seconds 1
 
     Dispatch-Key $socket ([ref]$id) "KeyD" "d"
     foreach ($step in 1..12) {
@@ -218,6 +262,12 @@ try {
     }
     if ($result.overflowX) {
         throw "Page has horizontal overflow."
+    }
+    if ($result.state.gamePhase -ne "fight" -and $result.state.gamePhase -ne "ended") {
+        throw "Expected fight or ended phase but got $($result.state.gamePhase)."
+    }
+    if ($result.state.player.id -ne "rizo" -or $result.state.cpu.id -ne "nara") {
+        throw "Expected Rizo vs Nara, got $($result.state.player.id) vs $($result.state.cpu.id)."
     }
     if ($result.state.player.x -le $initial.player.x) {
         throw "Player did not move forward."

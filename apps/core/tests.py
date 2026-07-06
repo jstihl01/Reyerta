@@ -22,9 +22,9 @@ class CoreViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Sesion iniciada: director")
         self.assertContains(response, "Local")
-        self.assertContains(response, "Buscar partida")
-        self.assertContains(response, "Crear sala")
-        self.assertContains(response, "Unirse")
+        self.assertNotContains(response, "Buscar partida")
+        self.assertNotContains(response, "Crear sala")
+        self.assertNotContains(response, "Unirse")
 
     def test_game_menu_routes_require_login(self):
         protected_routes = [
